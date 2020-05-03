@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.metrics._classification import _check_set_wise_labels, multilabel_confusion_matrix, _prf_divide, _warn_prf
+
 sns.set_style('darkgrid')
 
 from scipy import stats
@@ -284,7 +286,9 @@ def analysis(model, X_train, y_train):
 
     # predict probabilities
     probs = model.predict_proba(X_test)
-
+    print("###############")
+    print("probs: ", probs)
+    print("###############")
     # keep probabilities for the positive outcome only
     probs = probs[:, 1]
 
@@ -301,7 +305,104 @@ def analysis(model, X_train, y_train):
     rs = recall_score(y_test, preds)
 
     # calculate F1 score
-    f1 = f1_score(y_test, preds)
+    # precision_recall_fscore_support return 4 things, I need just the f
+    sample_weight = None
+    warn_for = ('f-score')
+    zero_division = "warn"
+    average = 'binary'
+    beta = 1.0
+    #_check_zero_division("warn")
+    labels = _check_set_wise_labels(y_test, preds, average, None, 1)
+
+    # Calculate tp_sum, pred_sum, true_sum ###
+    samplewise = average == 'samples'
+    MCM = multilabel_confusion_matrix(y_test, preds, sample_weight=None, labels=labels, samplewise=samplewise)
+
+# In multilabel confusion matrix :math:`MCM`, the count of true negatives
+#     is :math:`MCM_{:,0,0}`, false negatives is :math:`MCM_{:,1,0}`,
+#     true positives is :math:`MCM_{:,1,1}` and false positives is
+#     :math:`MCM_{:,0,1}`.
+    tn_sum = MCM[:, 0, 0]
+    fn_sum = MCM[:, 1, 0]
+    fp_sum = MCM[:, 0, 1]
+
+    tp_sum = MCM[:, 1, 1]
+    pred_sum = tp_sum + MCM[:, 0, 1]
+    true_sum = tp_sum + MCM[:, 1, 0]
+
+    if average == 'micro':
+        tp_sum = np.array([tp_sum.sum()])
+        pred_sum = np.array([pred_sum.sum()])
+        true_sum = np.array([true_sum.sum()])
+        # added
+        tn_sum = np.array([tn_sum.sum()])
+        fn_sum = np.array([fn_sum.sum()])
+        fp_sum = np.array([fp_sum.sum()])
+
+    # Finally, we have all our sufficient statistics. Divide! #
+    beta2 = beta ** 2
+
+    # Divide, and on zero-division, set scores and/or warn according to
+    # zero_division:
+    precision1 = _prf_divide(tp_sum, pred_sum, 'precision',
+                            'predicted', average, warn_for, zero_division)
+    recall1 = _prf_divide(tp_sum, true_sum, 'recall',
+                            'true', average, warn_for, zero_division)
+
+    # warn for f-score only if zero_division is warn, it is in warn_for
+    # and BOTH prec and rec are ill-defined
+    if zero_division == "warn" and ("f-score",) == warn_for:
+        if (pred_sum[true_sum == 0] == 0).any():
+            _warn_prf(
+                average, "true nor predicted", 'F-score is', len(true_sum)
+            )
+
+    # if tp == 0 F will be 1 only if all predictions are zero, all labels are
+    # zero, and zero_division=1. In all other case, 0
+    if np.isposinf(beta):
+        f_score = recall1
+    else:
+        denom = beta2 * precision1 + recall1
+
+        denom[denom == 0.] = 1  # avoid division by 0
+        f_score = (1 + beta2) * precision1 * recall1 / denom
+
+    # Average the results
+    if average == 'weighted':
+        weights = true_sum
+        if weights.sum() == 0:
+            zero_division_value = 0.0 if zero_division in ["warn", 0] else 1.0
+            # precision is zero_division if there are no positive predictions
+            # recall is zero_division if there are no positive labels
+            # fscore is zero_division if all labels AND predictions are
+            # negative
+            return (zero_division_value if pred_sum.sum() == 0 else 0,
+                    zero_division_value,
+                    zero_division_value if pred_sum.sum() == 0 else 0,
+                    None)
+
+    elif average == 'samples':
+        weights = sample_weight
+    else:
+        weights = None
+
+    if average is not None:
+        assert average != 'binary' or len(precision1) == 1
+        precision1 = np.average(precision1, weights=weights)
+        recall1 = np.average(recall1, weights=weights)
+        f_score = np.average(f_score, weights=weights)
+        true_sum = None  # return no support
+
+    #return precision, recall, f_score, true_sum
+    print("precision: ", precision1)
+    print("recall: ", recall1)
+    print("tp_sum: ", tp_sum)
+    print("tn_sum: ", tn_sum)
+    print("fn_sum: ", fn_sum)
+    print("fp_sum: ", fp_sum)
+
+    #f1 = f1_score(y_test, preds)
+    f1 = f_score
 
     # calculate precision-recall AUC
     auc_score = auc(recall, precision)
@@ -353,7 +454,7 @@ forest_param_grid = {
 forest_grid_search = GridSearchCV(forest,
                                   param_grid = forest_param_grid,
                                   scoring = 'recall',
-                                  cv=3,
+                                  cv=10,
                                   return_train_score=True)
 
 import time
@@ -375,7 +476,7 @@ forest_param_grid = {
 forest_grid_search = GridSearchCV(forest,
                                   param_grid = forest_param_grid,
                                   scoring = 'recall',
-                                  cv=3,
+                                  cv=10,
                                   return_train_score=True)
 
 import time
