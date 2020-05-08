@@ -495,19 +495,29 @@ def plot_feature_importances(model):
 
 # Naive Bayes
 # https://github.com/angelinap/Cervical-Cancer-Risk-Factors/blob/master/finalproject.py
-print ("-----Gaussian Naive Bayes-----")
+print("-----Gaussian Naive Bayes-----")
 GaussNB = GaussianNB()
 #analysis2(GaussNB, X_train, y_train)
 
 # GaussNB.fit(x_train, y_train)
-GaussNB.fit(X_train, y_train)
+for i in range(100):
+    GaussNB.fit(X_train, y_train)
 myprediction4 = GaussNB.predict(X_test)
+#
+# print(np.shape(myprediction4), np.shape(y_test))
+# print("Gaussian Naive Bayes Accuracy...")
+# # # score = GaussNB.score(x_test, y_test)
+# score = accuracy_score(y_test, myprediction4)
+# print(score)
 
-print (np.shape(myprediction4), np.shape(y_test))
-print ("Gaussian Naive Bayes Accuracy...")
-# score = GaussNB.score(x_test, y_test)
-score = accuracy_score(y_test, myprediction4)
-print (score)
+print("Training accuracy :", GaussNB.score(X_train, y_train))
+print("Testing accuracy :", GaussNB.score(X_test, y_test))
+
+# classification report
+print(classification_report(y_test, myprediction4))
+
+# confusion matrix: TP, TN, FP, FN
+print(confusion_matrix(y_test, myprediction4))
 
 # # https://github.com/arunravishankar/Cervical_cancer_risk_classification/blob/master/Cervical_cancer.ipynb
 # def model_efficacy(conf):

@@ -441,89 +441,110 @@ def plot_feature_importances(model):
     plt.ylabel("Feature")
 
 
+
+# creating the model
+model = RandomForestClassifier()
+
+# feeding the training data into the model
+for i in range(10):
+    model.fit(X_train, y_train)
+
+# predicting the test set results
+y_pred = model.predict(X_test)
+
+# Calculating the accuracies
+print("Training accuracy :", model.score(X_train, y_train))
+print("Testing accuracy :", model.score(X_test, y_test))
+
+# classification report
+print(classification_report(y_test, y_pred))
+
+# confusion matrix: TP, TN, FP, FN
+print(confusion_matrix(y_test, y_pred))
+
 #Random Forest
 # use grid search for the random forest classifier, use recall as the factor to optimize
-forest = RandomForestClassifier(random_state=10, n_jobs=-1)
-
-forest_param_grid = {
-    'class_weight': ['balanced'],
-    'criterion': ['gini', 'entropy' ],
-    'max_depth': [2, 3, 4, 5, 6, 7, 8],
-    'n_estimators': [20, 40, 50, 60, 80, 100, 200]} #number of trees in the foreset
-
-forest_grid_search = GridSearchCV(forest,
-                                  param_grid = forest_param_grid,
-                                  scoring = 'recall',
-                                  cv=10,
-                                  return_train_score=True)
-
-import time
-start = time.time()
-
-forest_grid_search.fit(X_train, y_train)
-
-print("Testing Accuracy: {:.4}%".format(forest_grid_search.best_score_ * 100))
-print("Total Runtime for Grid Search on Random Forest Classifier: {:.4} seconds".format(time.time() - start))
-print("")
-print("Optimal Parameters: {}".format(forest_grid_search.best_params_))
-
-forest_param_grid = {
-    'class_weight': ['balanced'],
-    'criterion': ['gini'],
-    'max_depth': [2, 3, 4],
-    'n_estimators': [10, 15, 20, 25, 30]}
-
-forest_grid_search = GridSearchCV(forest,
-                                  param_grid = forest_param_grid,
-                                  scoring = 'recall',
-                                  cv=10,
-                                  return_train_score=True)
-
-import time
-start = time.time()
-
-forest_grid_search.fit(X_train, y_train)
-
-print("Testing Accuracy: {:.4}%".format(forest_grid_search.best_score_ * 100))
-print("Total Runtime for Grid Search on Random Forest Classifier: {:.4} seconds".format(time.time() - start))
-print("")
-print("Optimal Parameters: {}".format(forest_grid_search.best_params_))
-
-forest = RandomForestClassifier(n_estimators=10,
-                                criterion='gini',
-                                max_depth=2,
-                                class_weight='balanced',
-                                random_state=10)
-analysis(forest, X_train, y_train)
-
-plot_feature_importances(forest)
-plt.show()
-
-# Plot the feature importances of the forest
-plt.figure(figsize=(20,20))
-plt.title("Feature importances")
-
-importances = forest.feature_importances_
-
-std = np.std([tree.feature_importances_ for tree in forest.estimators_],
-             axis=0)
-
-labels = np.array(X.columns)
-
-label_importance_std = pd.DataFrame(columns=['Factor','Importance', 'STD'])
-label_importance_std['Factor'] = labels
-label_importance_std['Importance'] = importances
-label_importance_std['STD'] = std
-
-label_importance_std.sort_values('Importance', inplace=True, ascending=False)
-
-
-#make the graph
-plt.bar(range(X_train.shape[1]), label_importance_std['Importance'],
-       color="r", yerr=label_importance_std['STD'], align="center")
-plt.xticks(range(X_train.shape[1]), label_importance_std['Factor'], rotation=90)
-plt.xlim([-1, X_train.shape[1]])
-plt.show()
+# forest = RandomForestClassifier(random_state=10, n_jobs=-1)
+#
+# forest_param_grid = {
+#     'class_weight': ['balanced'],
+#     'criterion': ['gini', 'entropy' ],
+#     'max_depth': [2, 3, 4, 5, 6, 7, 8],
+#     'n_estimators': [20, 40, 50, 60, 80, 100, 200]} #number of trees in the foreset
+#
+# forest_grid_search = GridSearchCV(forest,
+#                                   param_grid = forest_param_grid,
+#                                   scoring = 'recall',
+#                                   cv=10,
+#                                   return_train_score=True)
+#
+# import time
+# start = time.time()
+#
+# forest_grid_search.fit(X_train, y_train)
+#
+# print("Testing Accuracy: {:.4}%".format(forest_grid_search.best_score_ * 100))
+# print("Total Runtime for Grid Search on Random Forest Classifier: {:.4} seconds".format(time.time() - start))
+# print("")
+# print("Optimal Parameters: {}".format(forest_grid_search.best_params_))
+#
+# forest_param_grid = {
+#     'class_weight': ['balanced'],
+#     'criterion': ['gini'],
+#     'max_depth': [2, 3, 4],
+#     'n_estimators': [10, 15, 20, 25, 30]}
+#
+# forest_grid_search = GridSearchCV(forest,
+#                                   param_grid = forest_param_grid,
+#                                   scoring = 'recall',
+#                                   cv=10,
+#                                   return_train_score=True)
+#
+# import time
+# start = time.time()
+#
+# forest_grid_search.fit(X_train, y_train)
+#
+# print("Testing Accuracy: {:.4}%".format(forest_grid_search.best_score_ * 100))
+# print("Total Runtime for Grid Search on Random Forest Classifier: {:.4} seconds".format(time.time() - start))
+# print("")
+# print("Optimal Parameters: {}".format(forest_grid_search.best_params_))
+#
+# forest = RandomForestClassifier(n_estimators=10,
+#                                 criterion='gini',
+#                                 max_depth=2,
+#                                 class_weight='balanced',
+#                                 random_state=10)
+# analysis(forest, X_train, y_train)
+#
+# plot_feature_importances(forest)
+# plt.show()
+#
+# # Plot the feature importances of the forest
+# plt.figure(figsize=(20,20))
+# plt.title("Feature importances")
+#
+# importances = forest.feature_importances_
+#
+# std = np.std([tree.feature_importances_ for tree in forest.estimators_],
+#              axis=0)
+#
+# labels = np.array(X.columns)
+#
+# label_importance_std = pd.DataFrame(columns=['Factor','Importance', 'STD'])
+# label_importance_std['Factor'] = labels
+# label_importance_std['Importance'] = importances
+# label_importance_std['STD'] = std
+#
+# label_importance_std.sort_values('Importance', inplace=True, ascending=False)
+#
+#
+# #make the graph
+# plt.bar(range(X_train.shape[1]), label_importance_std['Importance'],
+#        color="r", yerr=label_importance_std['STD'], align="center")
+# plt.xticks(range(X_train.shape[1]), label_importance_std['Factor'], rotation=90)
+# plt.xlim([-1, X_train.shape[1]])
+# plt.show()
 
 
 # # use grid search for the random forest classifier, use recall as the factor to optimize - resampled, balanced data
