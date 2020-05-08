@@ -303,7 +303,7 @@ model = keras.Sequential()
 
 #Input layer
 model.add(layers.Dense(units=200,
-                input_dim=44,
+                input_dim=34,
                 kernel_initializer='uniform',
                 activation='relu'))
 model.add(layers.Dropout(0.5))
@@ -335,9 +335,10 @@ model.compile(loss='binary_crossentropy',
 
 # Train the model
 # Verbose=2, showing loss and accuracy change timely
-train_history = model.fit(x=X_train, y=y_train,
-                          validation_split=0.2, epochs=30,
-                          batch_size=200, verbose=2)
+for i in range(100):
+    train_history = model.fit(x=X_train, y=y_train,
+                            validation_split=0.2, epochs=30,
+                            batch_size=200, verbose=2)
 #train_history = model.fit(X_train, y_train)
 print(train_history)
 #visualize the loss and accuracy after each epoch
@@ -358,7 +359,7 @@ prediction = model.predict_classes(X_test)
 df_ans = pd.DataFrame({'Biopsy' :y_test})
 df_ans['Prediction'] = prediction
 
-df_ans[ df_ans['Biopsy'] != df_ans['Prediction'] ]
+#df_ans[ df_ans['Biopsy'] != df_ans['Prediction'] ]
 
 df_ans['Prediction'].value_counts()
 
@@ -404,3 +405,4 @@ def model_efficacy(conf):
 
 
 model_efficacy(conf)
+print(classification_report(df_ans['Biopsy'], df_ans['Prediction']))
