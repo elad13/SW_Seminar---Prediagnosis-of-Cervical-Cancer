@@ -300,7 +300,6 @@ model = keras.Sequential()
 # This results in a network that is less likely to overfit the training data.
 
 
-
 #Input layer
 model.add(layers.Dense(units=200,
                 input_dim=34,
@@ -335,11 +334,9 @@ model.compile(loss='binary_crossentropy',
 
 # Train the model
 # Verbose=2, showing loss and accuracy change timely
-for i in range(100):
-    train_history = model.fit(x=X_train, y=y_train,
-                            validation_split=0.2, epochs=30,
-                            batch_size=200, verbose=2)
-#train_history = model.fit(X_train, y_train)
+train_history = model.fit(x=X_train, y=y_train,
+                        validation_split=0.2, epochs=30,
+                        batch_size=200, verbose=2)
 print(train_history)
 #visualize the loss and accuracy after each epoch
 # show_train_history(train_history,'acc','val_acc')
